@@ -1,0 +1,84 @@
+<launch>
+
+<!-- initial pose -->
+<arg name="initialpose_x" value="0"/>
+<arg name="initialpose_y" value="0"/>
+<arg name="initialpose_a" value="0"/>
+<arg name="initial_state" value="[$(arg initialpose_x), $(arg initialpose_y), 0, 0, 0, $(arg initialpose_a), 0, 0, 0, 0, 0, 0, 0, 0, 0]"/>
+
+<!-- frame name -->
+<arg name="global_frame" value="map"/>
+<arg name="odom_frame"   value="odom"/>
+<arg name="base_frame"   value="base_footprint"/>
+<arg name="base_link_frame"   value="base_link"/>
+<arg name="gps_frame"   value="gps"/>
+
+
+  <!-- map server -->
+  <arg name="map_file" value="$(find bot_navigation)/maps/map_square/map.yaml"/>
+  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)">
+    <param name="frame_id" value="$(arg global_frame)"/>
+  </node>
+
+  <!-- static tf -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="world_to_map"
+    args="0 0 0 0 0 0 world_link $(arg global_frame)">
+  </node>
+  
+  <node pkg="tf2_ros" type="static_transform_publisher" name="map_to_measured"
+    args="0 0 0 0 0 0 $(arg global_frame) base_measured">
+  </node>
+
+  <node pkg="tf2_ros" type="static_transform_publisher" name="foot_to_gps"
+    args="0.1 0 0.36 0 0 0 $(arg base_frame) gps">
+  </node>
+
+  <node pkg="tf2_ros" type="static_transform_publisher" name="foot_to_laser"
+    args="0 0 0 0 0 0 base_footprint laser">
+  </node>
+  
+  <arg name="no_static_map" default="false"/>
+  <!-- move base -->
+  <arg name="move_base" default="true"/>
+  <node pkg="move_base" type="move_base" name="move_base" respawn="false" output="screen" if="$(arg move_base)">
+    <remap from="odom"                            to="/guidebot/odometry/filtered"/>
+    <remap from="cmd_vel"                            to="/hapirobo/cmd_vel"/>
+    <param name="global_costmap/global_frame"     value="$(arg global_frame)"/>
+    <param name="global_costmap/robot_base_frame" value="$(arg base_frame)"/>
+    <param name="local_costmap/global_frame"      value="$(arg global_frame)"/>
+    <param name="local_costmap/robot_base_frame"  value="$(arg base_frame)"/>
+    <rosparam file="$(find bot_navigation)/param/move_base.yaml"/>
+    <rosparam file="$(find bot_navigation)/param/global_planner.yaml"/>
+    <rosparam file="$(find bot_navigation)/param/local_planner.yaml"/>
+    <rosparam file="$(find bot_navigation)/param/costmap_separate.yaml"/>
+    <rosparam file="$(find bot_navigation)/param/costmap_common.yaml" ns="global_costmap"/>
+    <rosparam file="$(find bot_navigation)/param/costmap_common.yaml" ns="local_costmap"/>
+  </node>
+    
+ <env name="ROSCONSOLE_FORMAT" value="[${severity}][${thread}][${node}/${function}:${line}]: ${message}"/>
+
+  <!-- Loomo odometry -->
+  <node pkg="bot_navigation" type="guidebot_odometry" name="guidebot_odometry" output="screen">
+    <param name="odom_topic_name" value="odometry/wheel"/>   
+    <param name="sub_odom_topic_name" value="/hapirobo/loomo_odd"/>  
+    <param name="odom_frame_id"   value="$(arg odom_frame)"/>
+    <param name="base_frame_id"   value="$(arg base_frame)"/>
+    <!--<param name="wheel_radius"    value="0.123"/>
+    <param name="wheel_tread"     value="0.485"/>-->
+    <param name="print_tf"        value="True"/>
+  </node>
+
+  <!-- map_to_odom -->
+  <rosparam file="$(find bot_navigation)/param/robot_local_separate.yaml"/>
+  <node pkg="robot_localization" type="ekf_localization_node" name="robot_localization_ekf"> 
+    <rosparam command="load" file="$(find bot_navigation)/param/robot_local_common.yaml"/>
+    <rosparam param="initial_state" subst_value="True">$(arg initial_state)</rosparam>
+    <remap from="set_pose"          to="initialpose"/>
+    <param name="map_frame"         value="$(arg global_frame)"/>
+    <param name="odom_frame"        value="$(arg odom_frame)"/>    
+    <param name="base_link_frame"   value="$(arg base_frame)"/>
+    <param name="world_frame"       value="$(arg global_frame)"/>
+  </node>
+  
+</launch>
+

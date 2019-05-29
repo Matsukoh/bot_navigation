@@ -1,0 +1,87 @@
+
+global_costmap:
+
+  update_frequency:    1.0
+  publish_frequency:   1.0
+
+  static_map:          true
+  always_send_full_costmap: false
+  rolling_window:      false
+  width:               100 # 10.0
+  height:              100 # 10.0
+  resolution:          0.08
+  origin_x:            0
+  origin_y:            0
+
+  # width:               10.0
+  # height:              10.0
+  transform_tolerance: 0.5
+
+  plugins:
+    - {name: static_layer,         type: "costmap_2d::StaticLayer"}
+    # - {name: obstacle_layer,       type: "costmap_2d::ObstacleLayer"}
+    # - {name: dynamic_obstacle_layer,       type: "dynamic_obstacle_layer::DynamicObstacleLayer"}
+    - {name: inflation_layer,      type: "costmap_2d::InflationLayer"}
+    # - {name: social_prox_layer,    type: "social_navigation_layers::ProxemicLayer"}
+    # - {name: social_pass_layer,    type: "social_navigation_layers::PassingLayer"}
+    # - {name: social_compliance, type: "social_compliance_layer::SocialComplianceLayer"}
+    
+  inflation_layer:
+    enabled:               true
+    cost_scaling_factor:   10 #1.0     # コスト関数の定数(default: 10)
+    inflation_radius:      1.75 #0.5      # コストのグラデーションの最外部の半径
+  
+  social_prox_layer:
+    enabled:    True
+    cutoff:     50.0
+    amplitude:  255.0
+    covariance: 1.0
+    factor:     5.0
+    keep_time:  0.75
+
+
+  # social_compliance:
+  #   goal_topic: /portable1/move_base_simple/goal
+  #   people_topic: /pedsim_visualizer/tracked_persons #_filtered_by_distance
+  #   groups_topic: /pedsim_visualizer/tracked_groups
+  #   behavior_name: 'polite'
+  #   behavior_params_polite: [2.0000129, 1.350002, 0.002]
+  #   behavior_params_sociable: [1.00023, 0.25, 0.5]
+  #   behavior_params_rude: [0.0, 0.0, 0.5]
+
+
+
+local_costmap:
+
+  update_frequency:    5.0
+  publish_frequency:   5.0
+
+  static_map:          false
+  rolling_window:      true
+  width:               3.0
+  height:              3.0
+  #resolution:          0.05
+  resolution:          0.05
+  transform_tolerance: 10
+
+  plugins:
+    - {name: static_layer,    type: "costmap_2d::StaticLayer"}
+    - {name: obstacle_layer,       type: "costmap_2d::ObstacleLayer"}
+    # - {name: dynamic_obstacle_layer,       type: "dynamic_obstacle_layer::DynamicObstacleLayer"}
+    - {name: inflation_layer,      type: "costmap_2d::InflationLayer"}
+    # - {name: social_prox_layer,    type: "social_navigation_layers::ProxemicLayer"}
+    # - {name: social_pass_layer,    type: "social_navigation_layers::PassingLayer"}
+  
+  inflation_layer:
+    enabled:               true
+    # cost_scaling_factor:   2.58 # 10.0     # コスト関数の定数(default: 10)
+    cost_scaling_factor:   10
+    inflation_radius:      1.75 #0.6      # コストのグラデーションの最外部の半径
+    
+  social_prox_layer:
+    enabled:    True
+    cutoff:     50.0
+    amplitude:  255.0
+    covariance: 1.0
+    factor:     5.0
+    keep_time:  0.75

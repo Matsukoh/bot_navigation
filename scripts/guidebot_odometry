@@ -1,0 +1,87 @@
+#!/usr/bin/env python
+# -*- coding:utf-8 -*-
+import rospy
+import math 
+import tf
+
+from math import cos, sin, sqrt, pi
+
+from nav_msgs.msg import Odometry
+from std_msgs.msg import String
+from std_msgs.msg import Float64
+
+from nav_msgs.msg import Odometry
+
+class OdometryClass:
+  def __init__(self):
+
+    self.odom_frame = rospy.get_param('~odom_frame_id', 'odom')
+    self.base_frame = rospy.get_param('~base_frame_id', 'base_footprint')
+    self.print_tf   = rospy.get_param('~print_tf', False)
+    """
+    self.radius    = rospy.get_param('~wheel_radius', 0.123) # タイヤの半径(人が乗った場合 ： 0.123, 手で押す場合 : 0.129)
+    self.tread     = rospy.get_param('~wheel_tread',  0.485) # タイヤ間距離
+    self.r_pulse   = rospy.get_param('~encoder_pulse', 4000) # エンコーダが一周した際のエンコーダ値（パルス数×4）
+    self.k_encoder = 2.0 * math.pi * self.radius / self.r_pulse
+    
+    self.odom_pub    = rospy.Publisher(rospy.get_param('~odom_topic_name', 'odom'), Odometry, queue_size=1000)
+    """
+    self.odom_pub    = rospy.Publisher(rospy.get_param('~odom_topic_name', 'odom'), Odometry, queue_size=1000)
+    self.broadcaster = tf.TransformBroadcaster()
+
+    self.position_x = 0.0
+    self.position_y = 0.0
+    self.pose_yaw   = 0.0
+
+    # rospy.Subscriber('serial_string', String, self.callback_string, queue_size=100)
+    # rospy.Subscriber('wheel_radius', Float64, self.callback_radius, queue_size=1)
+    # rospy.Subscriber('wheel_tread',  Float64, self.callback_tread,  queue_size=1)
+    
+    rospy.Subscriber(rospy.get_param('~sub_odom_topic_name', 'sub_odom'), Odometry, self.callback_odom, queue_size=1000)
+  
+  def callback_odom(self, data):
+
+    while data.pose.pose.orientation.z >  pi: data.pose.pose.orientation.z -= 2.0 * pi
+    while data.pose.pose.orientation.z < -pi: data.pose.pose.orientation.z += 2.0 * pi
+
+    quate = tf.transformations.quaternion_from_euler(0.0, 0.0, data.pose.pose.orientation.z)
+    
+    odom                         = Odometry()
+    odom.header.stamp            = rospy.Time.now()
+    odom.header.frame_id         = self.odom_frame
+    odom.child_frame_id          = self.base_frame
+    #odom.pose.pose.position.x    = data.pose.pose.position.x
+    #odom.pose.pose.position.y    = data.pose.pose.position.y
+
+    """
+    odom.pose.pose.orientation.x = data.pose.pose.orientation.x
+    odom.pose.pose.orientation.y = data.pose.pose.orientation.y
+    odom.pose.pose.orientation.z = data.pose.pose.orientation.z
+    odom.pose.pose.orientation.w = data.pose.pose.orientation.w
+    """
+    
+    odom.pose.pose.orientation.x = quate[0]
+    odom.pose.pose.orientation.y = quate[1]
+    odom.pose.pose.orientation.z = quate[2]
+    odom.pose.pose.orientation.w = quate[3]
+    
+
+    odom.twist.twist.linear.x    = data.twist.twist.linear.x 
+    odom.twist.twist.angular.z   = data.twist.twist.angular.z
+   
+    self.odom_pub.publish(odom)
+
+
+    if self.print_tf == True:
+      self.broadcaster.sendTransform( \
+        (odom.pose.pose.position.x, odom.pose.pose.position.y, 0.0), quate, \
+        rospy.Time.now(), self.base_frame, self.odom_frame)
+
+
+if __name__ == '__main__':
+  rospy.init_node('odom_tf', anonymous=True)
+  try:
+    OdometryClass()
+    rospy.spin()
+  except rospy.ROSInterruptException:
+    rospy.loginfo("guidebot_odometry node finished.")

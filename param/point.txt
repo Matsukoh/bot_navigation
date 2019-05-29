@@ -1,0 +1,77 @@
+header: 
+  seq: 0
+  stamp: 
+    secs: 99
+    nsecs: 800000000
+  frame_id: "world_link"
+point: 
+  x: -34.2152252197
+  y: -16.0581359863
+  z: -0.000194549560547
+---
+header: 
+  seq: 1
+  stamp: 
+    secs: 103
+    nsecs: 700000000
+  frame_id: "world_link"
+point: 
+  x: 2.33947372437
+  y: 3.82963180542
+  z: 0.000463485717773
+---
+header: 
+  seq: 2
+  stamp: 
+    secs: 108
+    nsecs: 900000000
+  frame_id: "world_link"
+point: 
+  x: 24.4184741974
+  y: 9.78241252899
+  z: 0.00658416748047
+---
+header: 
+  seq: 3
+  stamp: 
+    secs: 113
+    nsecs: 100000000
+  frame_id: "world_link"
+point: 
+  x: 51.092666626
+  y: 29.9858436584
+  z: -0.00189399719238
+---
+header: 
+  seq: 4
+  stamp: 
+    secs: 116
+    nsecs: 300000000
+  frame_id: "world_link"
+point: 
+  x: 68.8823242188
+  y: 43.8474845886
+  z: -0.00791549682617
+---
+header: 
+  seq: 5
+  stamp: 
+    secs: 121
+    nsecs:         0
+  frame_id: "world_link"
+point: 
+  x: 76.3009643555
+  y: 73.0115127563
+  z: -0.0107154846191
+---
+header: 
+  seq: 6
+  stamp: 
+    secs: 124
+    nsecs: 800000000
+  frame_id: "world_link"
+point: 
+  x: 63.9858398438
+  y: 98.1975479126
+  z: -0.0134296417236
+---
